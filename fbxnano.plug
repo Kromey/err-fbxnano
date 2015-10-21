@@ -1,0 +1,9 @@
+[Core]
+Name = FbxNano
+Module = fbxnano
+
+[Documentation]
+Description = A plugin with useful commands for our chat server
+
+[Python]
+Version = 3
