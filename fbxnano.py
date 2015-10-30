@@ -1,4 +1,4 @@
-from subprocess import check_output, call, CalledProcessError, STDOUT
+import subprocess
 import os
 
 
@@ -141,20 +141,20 @@ class FbxNano(BotPlugin):
             response = "I have disengaged Maintenance Mode"
             call([cmd, 'stop'])
         else:
-            response = check_output([cmd, 'status']).decode("utf-8")
+            response = subprocess.check_output([cmd, 'status']).decode("utf-8")
 
         return response
 
     def _get_site_version(self):
         # git symbolic-ref -q --short HEAD || git describe --tags --exact-match
         try:
-            output = check_output(['git', 'symbolic-ref', '-q', '--short', 'HEAD'], stderr=STDOUT)
+            output = subprocess.check_output(['git', 'symbolic-ref', '-q', '--short', 'HEAD'], stderr=subprocess.STDOUT)
         except CalledProcessError:
             # Not a regular branch, try looking for a tag
             try:
                 #output = check_output(['git', 'describe', '--tags', '--exact-match'], stderr=STDOUT)
-                output = check_output('git describe --tags --exact-match; exit 0', shell=True, stderr=STDOUT)
-            except CalledProcessError:
+                output = subprocess.check_output('git describe --tags --exact-match; exit 0', shell=True, stderr=subprocess.STDOUT)
+            except subprocess.CalledProcessError:
                 # Something else, for now just give up
                 return "I cannot comply, something went wrong: {}".format(output)
 
