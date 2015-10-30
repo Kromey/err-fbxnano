@@ -1,3 +1,7 @@
+from subprocess import check_output, CalledProcessError, STDOUT
+import os
+
+
 from errbot import BotPlugin, botcmd
 from errbot.backends.base import RoomNotJoinedError
 
@@ -105,5 +109,28 @@ class FbxNano(BotPlugin):
         if not self.config['SITE_PATH']:
             return "I cannot comply, I have not been configured with a site path yet."
 
-        return "I cannot comply, I have not been coded with that operation yet."
+        oldpath = os.getcwd()
+        os.chdir(self.config['SITE_PATH'])
+
+        response = self._get_site_version()
+
+        os.chdir(oldpath)
+
+        return response
+
+
+    def _get_site_version(self):
+        # git symbolic-ref -q --short HEAD || git describe --tags --exact-match
+        try:
+            output = check_output(['git', 'symbolic-ref', '-q', '--short', 'HEAD'], stderr=STDOUT)
+        except CalledProcessError:
+            # Not a regular branch, try looking for a tag
+            try:
+                #output = check_output(['git', 'describe', '--tags', '--exact-match'], stderr=STDOUT)
+                output = check_output('git describe --tags --exact-match; exit 0', shell=True, stderr=STDOUT)
+            except CalledProcessError:
+                # Something else, for now just give up
+                return "I cannot comply, something went wrong: {}".format(output)
+
+        return "The website is currently on {}".format(output.decode("utf-8"))
 
