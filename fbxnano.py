@@ -1,4 +1,4 @@
-from subprocess import check_output, CalledProcessError, STDOUT
+from subprocess import check_output, call, CalledProcessError, STDOUT
 import os
 
 
@@ -118,6 +118,32 @@ class FbxNano(BotPlugin):
 
         return response
 
+    @admincmd
+    def maintenance_mode(self, msg, args):
+        """Maintenance mode for the website.
+
+        With no arguments, this command will simply return the current status of
+        the website's maintenance mode. Alternatively, supply "start" or "stop"
+        as an argument to start or stop maintenance mode.
+
+        An unrecognized argument will be treated as none at all, and thus return
+        the current status."""
+
+        if not self.config['SITE_PATH']:
+            return "I cannot comply, I have not been configured with a site path yet."
+
+        cmd = os.path.join(self.config['SITE_PATH'], 'maintenance_mode')
+
+        if args.lower() == 'start':
+            call([cmd, 'start'])
+            response = "I have engaged Maintenance Mode"
+        elif args.lower() == 'stop':
+            response = "I have disengaged Maintenance Mode"
+            call([cmd, 'stop'])
+        else:
+            response = check_output([cmd, 'status']).decode("utf-8")
+
+        return response
 
     def _get_site_version(self):
         # git symbolic-ref -q --short HEAD || git describe --tags --exact-match
