@@ -135,11 +135,11 @@ class FbxNano(BotPlugin):
         cmd = os.path.join(self.config['SITE_PATH'], 'maintenance_mode')
 
         if args.lower() == 'start':
-            call([cmd, 'start'])
+            subprocess.check_output([cmd, 'start'])
             response = "I have engaged Maintenance Mode"
         elif args.lower() == 'stop':
+            subprocess.check_output([cmd, 'stop'])
             response = "I have disengaged Maintenance Mode"
-            call([cmd, 'stop'])
         else:
             response = subprocess.check_output([cmd, 'status']).decode("utf-8")
 
