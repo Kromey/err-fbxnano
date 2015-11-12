@@ -133,7 +133,18 @@ class FbxNano(BotPlugin):
 
     @admincmd
     def site_tags(self, msg, args):
-        """Get the tags currently available"""
+        """Get the most recent tags available.
+
+        By default, returns only the 5 most recent tags, but you can request a
+        different number by supplying the desired count as an argument, such as
+        `!site tags 3` to get the 3 most recent tags.
+        """
+
+        try:
+            if args:
+                return self._get_site_tags(int(args))
+        except ValueError:
+            pass
 
         return self._get_site_tags()
 
@@ -181,10 +192,14 @@ class FbxNano(BotPlugin):
         return "The website is currently on {}".format(output.decode("utf-8"))
 
     @gitcmd
-    def _get_site_tags(self):
+    def _get_site_tags(self, count=5):
         try:
             output = subprocess.check_output(['git', 'tag'], stderr=subprocess.STDOUT)
         except CalledProcessError:
             return "I cannot comply, something went wrong: {}".format(output.decode("utf-8"))
 
-        return "The site has these tags available:\n{}".format(output.decode("utf-8"))
+        tags = output.decode("utf-8").split()[-1*count:]
+        output = "\n".join(tags)
+
+        return "The {} most recent tags available are:\n{}".format(count, output)
+
