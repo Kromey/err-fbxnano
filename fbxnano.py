@@ -9,6 +9,29 @@ from errbot.backends.base import RoomNotJoinedError
 admincmd = botcmd(admin_only=True)
 
 
+def gitcmd(method):
+    """Decorate methods that need to run git commands.
+
+    This decorator handles checking config and properly manipulating the working
+    directory to successfully run git commands on the site without adversely
+    affecting other bot operations.
+    """
+    def wrapper(self, *args, **kwargs):
+        if not self.config['SITE_PATH']:
+            return "I cannot comply, I have not been configured with a site path yet."
+
+        oldpath = os.getcwd()
+        os.chdir(self.config['SITE_PATH'])
+
+        response = method(self, *args, **kwargs)
+
+        os.chdir(oldpath)
+
+        return response
+
+    return wrapper
+
+
 class FbxNano(BotPlugin):
     """An Err plugin for our chat server"""
     min_err_version = '3.0.5' # Optional, but recommended
@@ -106,33 +129,13 @@ class FbxNano(BotPlugin):
     def site_version(self, msg, args):
         """Get the current version of the website"""
 
-        if not self.config['SITE_PATH']:
-            return "I cannot comply, I have not been configured with a site path yet."
-
-        oldpath = os.getcwd()
-        os.chdir(self.config['SITE_PATH'])
-
-        response = self._get_site_version()
-
-        os.chdir(oldpath)
-
-        return response
+        return self._get_site_version()
 
     @admincmd
     def site_tags(self, msg, args):
         """Get the tags currently available"""
 
-        if not self.config['SITE_PATH']:
-            return "I cannot comply, I have not been configured with a site path yet."
-
-        oldpath = os.getcwd()
-        os.chdir(self.config['SITE_PATH'])
-
-        response = self._get_site_tags()
-
-        os.chdir(oldpath)
-
-        return response
+        return self._get_site_tags()
 
     @admincmd
     def maintenance_mode(self, msg, args):
@@ -161,6 +164,7 @@ class FbxNano(BotPlugin):
 
         return response
 
+    @gitcmd
     def _get_site_version(self):
         # git symbolic-ref -q --short HEAD || git describe --tags --exact-match
         try:
@@ -176,6 +180,7 @@ class FbxNano(BotPlugin):
 
         return "The website is currently on {}".format(output.decode("utf-8"))
 
+    @gitcmd
     def _get_site_tags(self):
         try:
             output = subprocess.check_output(['git', 'tag'], stderr=subprocess.STDOUT)
@@ -183,4 +188,3 @@ class FbxNano(BotPlugin):
             return "I cannot comply, something went wrong: {}".format(output.decode("utf-8"))
 
         return "The site has these tags available:\n{}".format(output.decode("utf-8"))
-
