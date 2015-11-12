@@ -119,6 +119,22 @@ class FbxNano(BotPlugin):
         return response
 
     @admincmd
+    def site_tags(self, msg, args):
+        """Get the tags currently available"""
+
+        if not self.config['SITE_PATH']:
+            return "I cannot comply, I have not been configured with a site path yet."
+
+        oldpath = os.getcwd()
+        os.chdir(self.config['SITE_PATH'])
+
+        response = self._get_site_tags()
+
+        os.chdir(oldpath)
+
+        return response
+
+    @admincmd
     def maintenance_mode(self, msg, args):
         """Maintenance mode for the website.
 
@@ -159,4 +175,12 @@ class FbxNano(BotPlugin):
                 return "I cannot comply, something went wrong: {}".format(output)
 
         return "The website is currently on {}".format(output.decode("utf-8"))
+
+    def _get_site_tags(self):
+        try:
+            output = subprocess.check_output(['git', 'tag'], stderr=subprocess.STDOUT)
+        except CalledProcessError:
+            return "I cannot comply, something went wrong: {}".format(output.decode("utf-8"))
+
+        return "The site has these tags available:\n{}".format(output.decode("utf-8"))
 
