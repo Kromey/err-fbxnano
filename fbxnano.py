@@ -9,6 +9,13 @@ from errbot.backends.base import RoomNotJoinedError
 admincmd = botcmd(admin_only=True)
 
 
+class GitError(Exception):
+    pass
+
+class ConfigError(Exception):
+    pass
+
+
 def gitcmd(method):
     """Decorate methods that need to run git commands.
 
@@ -18,7 +25,7 @@ def gitcmd(method):
     """
     def wrapper(self, *args, **kwargs):
         if not self.config['SITE_PATH']:
-            return "I cannot comply, I have not been configured with a site path yet."
+            raise ConfigError("I cannot comply, I have not been configured with a site path yet.")
 
         oldpath = os.getcwd()
         os.chdir(self.config['SITE_PATH'])
@@ -186,7 +193,7 @@ class FbxNano(BotPlugin):
                 output = subprocess.check_output('git describe --tags --exact-match; exit 0', shell=True, stderr=subprocess.STDOUT)
             except subprocess.CalledProcessError:
                 # Something else, for now just give up
-                return "I cannot comply, something went wrong: {}".format(output)
+                raise GitError("I cannot comply, something went wrong: {}".format(output.decode("utf-8")))
 
         return output.decode("utf-8")
 
@@ -195,7 +202,7 @@ class FbxNano(BotPlugin):
         try:
             output = subprocess.check_output(['git', 'tag'], stderr=subprocess.STDOUT)
         except CalledProcessError:
-            return "I cannot comply, something went wrong: {}".format(output.decode("utf-8"))
+            raise GitError("I cannot comply, something went wrong: {}".format(output.decode("utf-8")))
 
         tags = output.decode("utf-8").split()[-1*count:]
 
