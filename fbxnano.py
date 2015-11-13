@@ -130,7 +130,24 @@ class FbxNano(BotPlugin):
         if not self.config['SITE_PATH']:
             return "I cannot comply, I have not been configured with a site path yet."
 
-        return "I cannot comply, I have not been coded with that operation yet."
+        cur_version = self._get_site_version()
+        new_version = args
+
+        if cur_version == new_version or cur_version == "v{}".format(new_version):
+            return "The site is already on version {}".format(cur_version)
+
+        self._fetch_upstream()
+
+        try:
+            self._checkout_tag(new_version)
+        except GitError:
+            # Maybe the user forgot the leading 'v', try again
+            try:
+                self._checkout_tag("v{}".format(new_version))
+            except GitError as e:
+                return str(e)
+
+        return "Version {} of the website has been deployed".format(self._get_site_version())
 
     @admincmd
     def site_version(self, msg, args):
@@ -186,7 +203,7 @@ class FbxNano(BotPlugin):
         # git symbolic-ref -q --short HEAD || git describe --tags --exact-match
         try:
             output = subprocess.check_output(['git', 'symbolic-ref', '-q', '--short', 'HEAD'], stderr=subprocess.STDOUT)
-        except CalledProcessError:
+        except subprocess.CalledProcessError:
             # Not a regular branch, try looking for a tag
             try:
                 #output = check_output(['git', 'describe', '--tags', '--exact-match'], stderr=STDOUT)
@@ -195,16 +212,35 @@ class FbxNano(BotPlugin):
                 # Something else, for now just give up
                 raise GitError("I cannot comply, something went wrong: {}".format(output.decode("utf-8")))
 
-        return output.decode("utf-8")
+        return output.decode("utf-8").strip()
 
     @gitcmd
     def _get_site_tags(self, count=5):
         try:
             output = subprocess.check_output(['git', 'tag'], stderr=subprocess.STDOUT)
-        except CalledProcessError:
+        except subprocess.CalledProcessError:
             raise GitError("I cannot comply, something went wrong: {}".format(output.decode("utf-8")))
 
         tags = output.decode("utf-8").split()[-1*count:]
 
         return tags[::-1] # Extended slice notation; reverses the list
+
+    @gitcmd
+    def _fetch_upstream(self):
+        try:
+            subprocess.check_output(['git', 'fetch', '--all'], stderr=subprocess.STDOUT)
+        except subprocess.CalledProcessError:
+            raise GitError("I cannot comply, something went wrong: {}".format(output.decode("utf-8")))
+
+    @gitcmd
+    def _checkout_tag(self, target):
+        # First ensure the target tag exists, at least in the last 25 tags
+        if target not in self._get_site_tags(25):
+            raise GitError("Target does not exist, or is too old: {}".format(target))
+
+        try:
+            subprocess.check_output(['git', 'checkout', '--force', target], stderr=subprocess.STDOUT)
+        except subprocess.CalledProcessError:
+            raise GitError("Something went wrong: {}".format(output.decode("utf-8")))
+
 
