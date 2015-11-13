@@ -129,7 +129,7 @@ class FbxNano(BotPlugin):
     def site_version(self, msg, args):
         """Get the current version of the website"""
 
-        return self._get_site_version()
+        return "The website is currently on {}".format(self._get_site_version())
 
     @admincmd
     def site_tags(self, msg, args):
@@ -188,7 +188,7 @@ class FbxNano(BotPlugin):
                 # Something else, for now just give up
                 return "I cannot comply, something went wrong: {}".format(output)
 
-        return "The website is currently on {}".format(output.decode("utf-8"))
+        return output.decode("utf-8")
 
     @gitcmd
     def _get_site_tags(self, count=5):
