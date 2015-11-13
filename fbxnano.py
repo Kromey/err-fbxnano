@@ -199,7 +199,10 @@ class FbxNano(BotPlugin):
             return "I cannot comply, something went wrong: {}".format(output.decode("utf-8"))
 
         tags = output.decode("utf-8").split()[-1*count:]
-        output = "\n".join(tags)
+        output = "\n".join(tags[::-1]) # Extended slice notation; reverses the list
+        # Could have combined the two slice operations on the previous lines into
+        # one, but it gets absurdly unreadable at that point; this is already
+        # cryptic enough as it is!
 
         return "The {} most recent tags available are:\n{}".format(count, output)
 
