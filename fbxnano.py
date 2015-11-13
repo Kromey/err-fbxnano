@@ -57,48 +57,6 @@ class FbxNano(BotPlugin):
                 'SITE_PATH': "",
                }
 
-    def configure(self, configuration):
-        """Allow configuration to be updated incrementally
-
-        Only the part(s) of the config you want changed need to be supplied to
-        the !config command. Anything you want left unchanged -- or, if not yet
-        set, left at the template value -- can simply be omitted."""
-        config = self.get_configuration_template()
-
-        try:
-            config.update(self.config)
-        except (AttributeError,TypeError):
-            # If we're not yet configured, self.config is None; do nothing about it
-            pass
-
-        try:
-            config.update(configuration)
-        except TypeError:
-            # We were passed None, or not a valid dictionary; do nothing with it
-            pass
-
-        super().configure(config)
-
-    def check_configuration(self, configuration):
-        """Check our config, keeping in mind it may be partial.
-
-        We simply merge the configuration with the template, and then do the
-        standard check_configuration() on the result."""
-        config = self.get_configuration_template()
-        config.update(configuration)
-
-        super().check_configuration(config)
-
-    @admincmd
-    def check_config(self, msg, args):
-        """Check the currently-active configuration.
-
-        Our partial-configuration support means that the standard !config
-        command doesn't actually know the full story. This custom command will
-        allow us to examine the currently-running configuration instead."""
-        yield "My current configuration is:"
-        yield self.config
-
     @botcmd
     def invite_me(self, mess, args):
         """Ask the bot to invite you to the group chat"""
