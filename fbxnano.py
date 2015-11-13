@@ -141,12 +141,11 @@ class FbxNano(BotPlugin):
         """
 
         try:
-            if args:
-                return self._get_site_tags(int(args))
+            tags = self._get_site_tags(int(args))
         except ValueError:
-            pass
+            tags = self._get_site_tags()
 
-        return self._get_site_tags()
+        return "The {} most recent tags available are:\n{}".format(len(tags), "\n".join(tags))
 
     @admincmd
     def maintenance_mode(self, msg, args):
@@ -199,10 +198,6 @@ class FbxNano(BotPlugin):
             return "I cannot comply, something went wrong: {}".format(output.decode("utf-8"))
 
         tags = output.decode("utf-8").split()[-1*count:]
-        output = "\n".join(tags[::-1]) # Extended slice notation; reverses the list
-        # Could have combined the two slice operations on the previous lines into
-        # one, but it gets absurdly unreadable at that point; this is already
-        # cryptic enough as it is!
 
-        return "The {} most recent tags available are:\n{}".format(count, output)
+        return tags[::-1] # Extended slice notation; reverses the list
 
