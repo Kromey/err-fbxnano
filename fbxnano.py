@@ -16,11 +16,11 @@ class ConfigError(Exception):
     pass
 
 
-def gitcmd(method):
-    """Decorate methods that need to run git commands.
+def sitecmd(method):
+    """Decorate methods that need to run commands locally in the SITE_PATH
 
     This decorator handles checking config and properly manipulating the working
-    directory to successfully run git commands on the site without adversely
+    directory to successfully run commands from within SITE_PATH, but without
     affecting other bot operations.
     """
     def wrapper(self, *args, **kwargs):
@@ -156,7 +156,7 @@ class FbxNano(BotPlugin):
 
         return response
 
-    @gitcmd
+    @sitecmd
     def _get_site_version(self):
         # git symbolic-ref -q --short HEAD || git describe --tags --exact-match
         try:
@@ -172,7 +172,7 @@ class FbxNano(BotPlugin):
 
         return output.decode("utf-8").strip()
 
-    @gitcmd
+    @sitecmd
     def _get_site_tags(self, count=5):
         try:
             output = subprocess.check_output(['git', 'tag'], stderr=subprocess.STDOUT)
@@ -183,14 +183,14 @@ class FbxNano(BotPlugin):
 
         return tags[::-1] # Extended slice notation; reverses the list
 
-    @gitcmd
+    @sitecmd
     def _fetch_upstream(self):
         try:
             subprocess.check_output(['git', 'fetch', '--all'], stderr=subprocess.STDOUT)
         except subprocess.CalledProcessError:
             raise GitError("I cannot comply, something went wrong: {}".format(output.decode("utf-8")))
 
-    @gitcmd
+    @sitecmd
     def _checkout_tag(self, target):
         # First ensure the target tag exists, at least in the last 25 tags
         if target not in self._get_site_tags(25):
