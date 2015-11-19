@@ -111,6 +111,8 @@ class FbxNano(BotPlugin):
             except GitError as e:
                 return str(e)
 
+        # TODO: pip install
+        # TODO: run migrations
         # TODO: collectstatic
         # TODO: restart uwsgi vassal
 
