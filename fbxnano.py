@@ -1,5 +1,6 @@
 import subprocess
 import os
+import time
 
 
 from errbot import BotPlugin, botcmd
@@ -94,6 +95,11 @@ class FbxNano(BotPlugin):
         if cur_version == new_version or cur_version == "v{}".format(new_version):
             return "The site is already on version {}".format(cur_version)
 
+        # Start maintenance mode
+        self.maintenance_mode(msg, 'start')
+        # Give everything a moment to settle
+        time.sleep(2)
+
         self._fetch_upstream()
 
         try:
@@ -104,6 +110,14 @@ class FbxNano(BotPlugin):
                 self._checkout_tag("v{}".format(new_version))
             except GitError as e:
                 return str(e)
+
+        # TODO: collectstatic
+        # TODO: restart uwsgi vassal
+
+        # Give everything another moment to settle
+        time.sleep(3)
+        # End maintenance mode
+        self.maintenance_mode(msg, 'stop')
 
         return "Version {} of the website has been deployed".format(self._get_site_version())
 
