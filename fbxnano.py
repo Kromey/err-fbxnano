@@ -3,7 +3,7 @@ import os
 import time
 
 
-from errbot import BotPlugin, botcmd
+from errbot import BotPlugin, botcmd, webhook
 from errbot.backends.base import RoomNotJoinedError
 
 
@@ -81,6 +81,20 @@ class FbxNano(BotPlugin):
             return "The others might enjoy your presence."
         else:
             return "Very well, but you and I could converse just as well here."
+
+    @webhook
+    def forum_post(self, payload):
+        for room in self.bot_config.CHATROOM_PRESENCE:
+            self.send(
+                    self.build_identifier(room),
+                    '{user} just posted {topic} on {board}\n{url}'.format(
+                        user=payload.get('user', ''),
+                        topic=payload.get('topic', ''),
+                        board=payload.get('board', ''),
+                        url=payload.get('url', ''),
+                        ).strip(),
+                    )
+        return 'OK'
 
     @admincmd
     def deploy_site(self, msg, args):
