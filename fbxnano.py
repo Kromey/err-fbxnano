@@ -96,6 +96,10 @@ class FbxNano(BotPlugin):
                     )
         return 'OK'
 
+    @webhook
+    def status(self, payload):
+        return "I'm awake"
+
     @admincmd
     def deploy_site(self, msg, args):
         """Deploy a new version of the site"""
